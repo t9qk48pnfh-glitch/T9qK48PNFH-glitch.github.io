@@ -1,127 +1,180 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>探索百科</title>
-    <style>
-        body { font-family: sans-serif; background: #eef2f5; margin: 0; padding: 20px; text-align: center; }
-        .header h1 { color: #333; }
-        .header p { color: #666; }
-        .search-bar { width: 80%; max-width: 600px; padding: 12px; margin: 20px 0; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
-        .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; text-align: left; border-top: 4px solid #4a90e2; }
-        .card:hover { transform: translateY(-5px); }
-        .tag { background: #eef; color: #4a90e2; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
-        .card h3 { margin: 10px 0; color: #333; }
-        .card p { color: #777; font-size: 14px; line-height: 1.5; }
-        
-        /* 弹窗样式 */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #fff; width: 90%; max-width: 500px; padding: 30px; border-radius: 12px; text-align: left; position: relative; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #999; }
-        .modal-title { margin-top: 0; color: #333; }
-        .modal-text { color: #555; line-height: 1.6; }
-        
-        /* 无结果提示 */
-        #no-result { display: none; color: #888; margin-top: 20px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的导航港</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #e2e8f0; min-height: 100vh; }
+    
+    /* 登录 */
+    #login-box { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { background: rgba(255,255,255,0.06); backdrop-filter: blur(10px); padding: 40px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); width: 340px; text-align: center; }
+    .login-card h2 { margin-bottom: 25px; font-weight: 600; }
+    .login-card input { width: 100%; padding: 12px 16px; margin: 8px 0; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color: #fff; font-size: 15px; }
+    .login-card input:focus { outline: none; border-color: #6366f1; }
+    .login-card button { width: 100%; padding: 12px; margin-top: 12px; border: none; border-radius: 10px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 16px; cursor: pointer; transition: transform .2s; }
+    .login-card button:hover { transform: translateY(-2px); }
+    #msg { color: #f87171; margin-top: 12px; font-size: 14px; min-height: 20px; }
+    
+    /* 主内容 */
+    #content { display: none; max-width: 1100px; margin: 0 auto; padding: 30px 20px 60px; }
+    .topbar { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; flex-wrap: wrap; }
+    .logo { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .search { flex: 1; min-width: 220px; padding: 12px 18px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: #fff; font-size: 15px; }
+    .search:focus { outline: none; border-color: #6366f1; }
+    .logout { padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px; }
+    .logout:hover { color: #fff; border-color: #fff; }
+    
+    /* 分类标签 */
+    .cats { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+    .cat { padding: 6px 16px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; cursor: pointer; font-size: 14px; transition: all .2s; }
+    .cat:hover, .cat.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-color: transparent; }
+    
+    /* 卡片网格 */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }
+    .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px; cursor: pointer; transition: all .25s; text-decoration: none; color: inherit; display: block; }
+    .card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.09); border-color: rgba(139,92,246,0.4); box-shadow: 0 10px 30px rgba(99,102,241,0.15); }
+    .card .row { display: flex; align-items: center; gap: 12px; }
+    .icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .card h3 { font-size: 16px; font-weight: 600; }
+    .card p { color: #94a3b8; font-size: 13px; margin-top: 10px; line-height: 1.5; }
+    #empty { text-align: center; color: #64748b; margin-top: 50px; display: none; }
+</style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🌍 探索百科</h1>
-        <p>汇聚科学与自然的奇妙知识</p>
+<!-- 登录 -->
+<div id="login-box">
+    <div class="login-card">
+        <h2>🔐 我的导航港</h2>
+        <input type="text" id="username" placeholder="账号">
+        <input type="password" id="password" placeholder="密码">
+        <button onclick="checkLogin()">进入导航</button>
+        <p id="msg"></p>
+    </div>
+</div>
+
+<!-- 主内容 -->
+<div id="content">
+    <div class="topbar">
+        <div class="logo">🧭 导航港</div>
+        <input type="text" class="search" id="search" placeholder="搜索网站：百度、抖音、AI、B站…">
+        <button class="logout" onclick="logout()">退出</button>
     </div>
     
-    <input type="text" class="search-bar" id="searchInput" placeholder="🔍 搜索百科知识...">
-    
-    <div class="grid" id="cardGrid">
-        <div class="card" onclick="openModal('黑洞 (Black Hole)', '黑洞是时空展现出极端强大的引力场的天体区域，连光都无法逃脱。它的边界被称为“事件视界”。')">
-            <span class="tag">天文学</span>
-            <h3>黑洞 (Black Hole)</h3>
-            <p>黑洞是时空展现出极端强大的引力场的天体区域...</p>
-        </div>
-        <div class="card" onclick="openModal('线粒体 (Mitochondria)', '线粒体是细胞中的“动力工厂”，负责通过细胞呼吸作用产生三磷酸腺苷（ATP），为细胞活动提供能量。')">
-            <span class="tag">生物学</span>
-            <h3>线粒体 (Mitochondria)</h3>
-            <p>线粒体是细胞中的“动力工厂”，负责产生能量...</p>
-        </div>
-        <div class="card" onclick="openModal('量子纠缠 (Quantum Entanglement)', '量子纠缠是一种量子力学现象，当几个粒子彼此相互作用后，它们的性质会综合成为整体性质，无法单独描述。')">
-            <span class="tag">物理学</span>
-            <h3>量子纠缠 (Quantum Entanglement)</h3>
-            <p>量子纠缠是一种量子力学现象，性质综合为整体...</p>
-        </div>
-        <div class="card" onclick="openModal('古埃及文明', '古埃及文明发源于非洲东北部尼罗河中下游地区，以金字塔、木乃伊和象形文字闻名于世。')">
-            <span class="tag">历史学</span>
-            <h3>古埃及文明</h3>
-            <p>发源于尼罗河中下游，以金字塔闻名于世...</p>
-        </div>
-        <div class="card" onclick="openModal('马里亚纳海沟', '马里亚纳海沟是地球海洋已知的最深处，位于北太平洋，最深处“挑战者深渊”深度超过10900米。')">
-            <span class="tag">物理学</span>
-            <h3>马里亚纳海沟</h3>
-            <p>地球海洋已知的最深处，位于北太平洋...</p>
-        </div>
-        <div class="card" onclick="openModal('人工智能 (AI)', '人工智能是计算机科学的一个分支，旨在创造能模拟人类智能行为的机器，包括学习、推理和自我修正。')">
-            <span class="tag">计算机</span>
-            <h3>人工智能 (AI)</h3>
-            <p>模拟人类智能行为的机器，包括学习和推理...</p>
-        </div>
+    <div class="cats" id="cats">
+        <div class="cat active" data-cat="all">全部</div>
+        <div class="cat" data-cat="search">搜索</div>
+        <div class="cat" data-cat="ai">AI 工具</div>
+        <div class="cat" data-cat="social">社交娱乐</div>
+        <div class="cat" data-cat="dev">开发</div>
+        <div class="cat" data-cat="learn">学习</div>
     </div>
     
-    <div id="no-result">没有找到相关的百科知识 😢</div>
+    <div class="grid" id="grid"></div>
+    <div id="empty">没有找到相关网站 🔍</div>
+</div>
 
-    <!-- 弹窗结构 -->
-    <div class="modal" id="myModal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h2 class="modal-title" id="modalTitle"></h2>
-            <p class="modal-text" id="modalText"></p>
-        </div>
-    </div>
+<script>
+// ====== 网站数据（想加网站改这里就行）======
+const SITES = [
+    // 搜索
+    { name: "百度", url: "https://www.baidu.com", desc: "全球最大中文搜索引擎", icon: "🐾", color: "#2563eb", cat: "search" },
+    { name: "必应", url: "https://www.bing.com", desc: "微软搜索引擎，国际范", icon: "🔷", color: "#0ea5e9", cat: "search" },
+    { name: "Google", url: "https://www.google.com", desc: "全球搜索引擎（需科学上网）", icon: "G", color: "#ea4335", cat: "search" },
+    { name: "搜狗", url: "https://www.sogou.com", desc: "腾讯旗下搜索", icon: "🔍", color: "#f97316", cat: "search" },
 
-    <script>
-        // 1. 搜索过滤功能
-        document.getElementById("searchInput").addEventListener("input", function() {
-            let filter = this.value.toLowerCase().trim();
-            let cards = document.querySelectorAll(".card");
-            let visibleCount = 0;
-            
-            cards.forEach(card => {
-                // 获取卡片上的所有文字（标题、标签、简介）
-                let text = card.innerText.toLowerCase();
-                if (text.includes(filter) || filter === "") {
-                    card.style.display = "block";
-                    visibleCount++;
-                } else {
-                    card.style.display = "none";
-                }
-            });
-            
-            // 如果没有匹配结果，显示提示
-            document.getElementById("no-result").style.display = visibleCount === 0 ? "block" : "none";
-        });
+    // AI
+    { name: "豆包", url: "https://www.doubao.com", desc: "字节跳动 AI 助手", icon: "🎤", color: "#8b5cf6", cat: "ai" },
+    { name: "DeepSeek", url: "https://www.deepseek.com", desc: "国产最强代码/推理 AI", icon: "🧠", color: "#6366f1", cat: "ai" },
+    { name: "Kimi", url: "https://kimi.moonshot.cn", desc: "长文本 AI 助手", icon: "🌙", color: "#0ea5e9", cat: "ai" },
+    { name: "ChatGPT", url: "https://chat.openai.com", desc: "OpenAI 官方对话", icon: "💬", color: "#10b981", cat: "ai" },
+    { name: "通义千问", url: "https://tongyi.aliyun.com", desc: "阿里云 AI", icon: "☁️", color: "#f59e0b", cat: "ai" },
 
-        // 2. 弹窗功能
-        function openModal(title, text) {
-            document.getElementById("modalTitle").innerText = title;
-            document.getElementById("modalText").innerText = text;
-            document.getElementById("myModal").style.display = "flex";
+    // 社交娱乐
+    { name: "抖音", url: "https://www.douyin.com", desc: "记录美好生活的短视频", icon: "🎵", color: "#ec4899", cat: "social" },
+    { name: "哔哩哔哩", url: "https://www.bilibili.com", desc: "B站，你感兴趣的视频", icon: "📺", color: "#06b6d4", cat: "social" },
+    { name: "小红书", url: "https://www.xiaohongshu.com", desc: "标记生活，种草社区", icon: "📕", color: "#ef4444", cat: "social" },
+    { name: "微博", url: "https://weibo.com", desc: "随时随地发现新鲜事", icon: "🔥", color: "#f59e0b", cat: "social" },
+    { name: "知乎", url: "https://www.zhihu.com", desc: "有问题，就会有答案", icon: "💡", color: "#3b82f6", cat: "social" },
+
+    // 开发
+    { name: "GitHub", url: "https://github.com", desc: "全球最大代码托管平台", icon: "🐙", color: "#64748b", cat: "dev" },
+    { name: "Gitee", url: "https://gitee.com", desc: "国内代码托管", icon: "🔧", color: "#f43f5e", cat: "dev" },
+    { name: "MDN", url: "https://developer.mozilla.org", desc: "Web 技术权威文档", icon: "📘", color: "#0ea5e9", cat: "dev" },
+    { name: "Stack Overflow", url: "https://stackoverflow.com", desc: "程序员问答社区", icon: "❓", color: "#f59e0b", cat: "dev" },
+    { name: "Vercel", url: "https://vercel.com", desc: "前端项目一键部署", icon: "▲", color: "#fff", cat: "dev" },
+
+    // 学习
+    { name: "中国大学MOOC", url: "https://www.icourse163.org", desc: "免费名校公开课", icon: "🎓", color: "#6366f1", cat: "learn" },
+    { name: "Wikipedia", url: "https://www.wikipedia.org", desc: "维基百科，自由百科全书", icon: "📖", color: "#6b7280", cat: "learn" },
+    { name: "少数派", url: "https://sspai.com", desc: "高效工作与数字生活指南", icon: "✍️", color: "#14b8a6", cat: "learn" },
+];
+
+// ====== 登录（演示用，别放真密码）======
+const USER = "admin", PASS = "123456";
+
+function checkLogin() {
+    const u = username.value.trim(), p = password.value;
+    if (u === USER && p === PASS) {
+        loginBox(), content.style.display = "block";
+        render();
+    } else {
+        msg.textContent = "账号或密码错误";
+    }
+}
+function logout() {
+    content.style.display = "none";
+    loginBox(), location.reload();
+}
+function loginBox(){ document.getElementById("login-box").style.display = "none"; }
+
+// 回车登录
+password.addEventListener("keypress", e => { if (e.key === "Enter") checkLogin(); });
+
+// ====== 渲染卡片 ======
+let curCat = "all";
+function render() {
+    const kw = search.value.trim().toLowerCase();
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    let count = 0;
+
+    SITES.forEach(s => {
+        const matchCat = curCat === "all" || s.cat === curCat;
+        const matchKw = !kw || s.name.toLowerCase().includes(kw) || s.desc.toLowerCase().includes(kw);
+        if (matchCat && matchKw) {
+            const a = document.createElement("a");
+            a.className = "card";
+            a.href = s.url;
+            a.target = "_blank";          // 新标签页打开
+            a.rel = "noopener noreferrer";
+            a.innerHTML = `
+                <div class="row">
+                    <div class="icon" style="background:${s.color}22;color:${s.color}">${s.icon}</div>
+                    <h3>${s.name}</h3>
+                </div>
+                <p>${s.desc}</p>`;
+            grid.appendChild(a);
+            count++;
         }
+    });
+    document.getElementById("empty").style.display = count ? "none" : "block";
+}
 
-        function closeModal() {
-            document.getElementById("myModal").style.display = "none";
-        }
+// 搜索
+search.addEventListener("input", render);
 
-        // 点击弹窗外部关闭
-        document.getElementById("myModal").addEventListener("click", function(e) {
-            if (e.target === this) closeModal();
-        });
-
-        // 按 Esc 键关闭
-        document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape") closeModal();
-        });
-    </script>
+// 分类切换
+document.getElementById("cats").addEventListener("click", e => {
+    if (!e.target.classList.contains("cat")) return;
+    document.querySelectorAll(".cat").forEach(c => c.classList.remove("active"));
+    e.target.classList.add("active");
+    curCat = e.target.dataset.cat;
+    render();
+});
+</script>
 </body>
 </html>
