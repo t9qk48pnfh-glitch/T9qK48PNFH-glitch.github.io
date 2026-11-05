@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>访问验证</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 100px; }
+        input { padding: 8px; margin: 5px; }
+        button { padding: 8px 20px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>🔒 请输入账号和密码访问网站</h2>
+    <div id="login-box">
+        <input type="text" id="username" placeholder="账号"><br>
+        <input type="password" id="password" placeholder="密码"><br>
+        <button onclick="checkLogin()">进入</button>
+        <p id="msg" style="color:red;"></p>
+    </div>
+    
+    <div id="content" style="display:none;">
+        <h3>🎉 欢迎进入网站！</h3>
+        <p>这里是你的网页正文内容...</p>
+    </div>
+
+    <script>
+        // 预设账号和密码（⚠️ 这只是演示，密码会暴露在浏览器源码中）
+        const CORRECT_USER = "admin";
+        const CORRECT_PASS = "123456";
+
+        function checkLogin() {
+            var u = document.getElementById("username").value;
+            var p = document.getElementById("password").value;
+            
+            if (u === CORRECT_USER && p === CORRECT_PASS) {
+                document.getElementById("login-box").style.display = "none";
+                document.getElementById("content").style.display = "block";
+            } else {
+                document.getElementById("msg").innerText = "账号或密码错误！";
+            }
+        }
+    </script>
+</body>
+</html>
