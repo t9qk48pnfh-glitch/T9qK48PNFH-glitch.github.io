@@ -2,135 +2,125 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>探索百科 - 登录</title>
+    <title>探索百科</title>
     <style>
-        /* 全局与背景样式 */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            margin: 0; padding: 0; display: flex; 
-            justify-content: center; align-items: center; min-height: 100vh;
-        }
+        body { font-family: sans-serif; background: #eef2f5; margin: 0; padding: 20px; text-align: center; }
+        .header h1 { color: #333; }
+        .header p { color: #666; }
+        .search-bar { width: 80%; max-width: 600px; padding: 12px; margin: 20px 0; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; transition: transform 0.2s; text-align: left; border-top: 4px solid #4a90e2; }
+        .card:hover { transform: translateY(-5px); }
+        .tag { background: #eef; color: #4a90e2; padding: 4px 10px; border-radius: 20px; font-size: 12px; }
+        .card h3 { margin: 10px 0; color: #333; }
+        .card p { color: #777; font-size: 14px; line-height: 1.5; }
         
-        /* 登录框样式 */
-        #login-box { 
-            background: white; padding: 40px; border-radius: 12px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; 
-            width: 320px; animation: fadeIn 0.5s ease-in-out;
-        }
-        #login-box h2 { margin-bottom: 25px; color: #333; }
-        #login-box input { 
-            width: 100%; padding: 12px; margin: 10px 0; 
-            border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; 
-            transition: border-color 0.3s;
-        }
-        #login-box input:focus { border-color: #667eea; outline: none; }
-        #login-box button { 
-            width: 100%; padding: 12px; background: #667eea; 
-            color: white; border: none; border-radius: 6px; 
-            cursor: pointer; font-size: 16px; margin-top: 10px;
-            transition: background 0.3s;
-        }
-        #login-box button:hover { background: #5a67d8; }
-        #msg { color: #e53e3e; margin-top: 15px; font-size: 14px; }
+        /* 弹窗样式 */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #fff; width: 90%; max-width: 500px; padding: 30px; border-radius: 12px; text-align: left; position: relative; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #999; }
+        .modal-title { margin-top: 0; color: #333; }
+        .modal-text { color: #555; line-height: 1.6; }
         
-        /* 百科内容区样式 */
-        #content { display: none; width: 100%; max-width: 1000px; animation: fadeIn 0.8s ease-in-out; }
-        .header { text-align: center; margin-bottom: 40px; color: #2d3748; }
-        .search-bar { 
-            width: 100%; padding: 15px; border-radius: 30px; 
-            border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-            font-size: 16px; margin-bottom: 40px; box-sizing: border-box;
-        }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-        .card { 
-            background: white; padding: 25px; border-radius: 12px; 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08); 
-            transition: transform 0.3s, box-shadow 0.3s; 
-            border-top: 4px solid #667eea;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .card h3 { margin-top: 0; color: #2d3748; }
-        .card p { color: #718096; line-height: 1.6; font-size: 15px; }
-        .tag { display: inline-block; background: #edf2f7; color: #4a5568; padding: 4px 10px; border-radius: 20px; font-size: 12px; margin-bottom: 15px;}
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* 无结果提示 */
+        #no-result { display: none; color: #888; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <!-- 登录区域 -->
-    <div id="login-box">
-        <h2>🔒 探索百科门禁</h2>
-        <input type="text" id="username" placeholder="请输入账号">
-        <input type="password" id="password" placeholder="请输入密码">
-        <button onclick="checkLogin()">进 入</button>
-        <p id="msg"></p>
+    <div class="header">
+        <h1>🌍 探索百科</h1>
+        <p>汇聚科学与自然的奇妙知识</p>
     </div>
     
-    <!-- 百科内容区域 -->
-    <div id="content">
-        <div class="header">
-            <h1>🌍 探索百科</h1>
-            <p>汇聚科学与自然的奇妙知识</p>
+    <input type="text" class="search-bar" id="searchInput" placeholder="🔍 搜索百科知识...">
+    
+    <div class="grid" id="cardGrid">
+        <div class="card" onclick="openModal('黑洞 (Black Hole)', '黑洞是时空展现出极端强大的引力场的天体区域，连光都无法逃脱。它的边界被称为“事件视界”。')">
+            <span class="tag">天文学</span>
+            <h3>黑洞 (Black Hole)</h3>
+            <p>黑洞是时空展现出极端强大的引力场的天体区域...</p>
         </div>
-        <input type="text" class="search-bar" placeholder="搜索百科知识...">
-        
-        <div class="grid">
-            <div class="card">
-                <span class="tag">天文学</span>
-                <h3>黑洞 (Black Hole)</h3>
-                <p>黑洞是时空展现出极端强大的引力场的天体区域，连光都无法逃脱。它的边界被称为“事件视界”。</p>
-            </div>
-            <div class="card">
-                <span class="tag">生物学</span>
-                <h3>线粒体 (Mitochondria)</h3>
-                <p>线粒体是细胞中的“动力工厂”，负责通过细胞呼吸作用产生三磷酸腺苷（ATP），为细胞活动提供能量。</p>
-            </div>
-            <div class="card">
-                <span class="tag">物理学</span>
-                <h3>量子纠缠 (Quantum Entanglement)</h3>
-                <p>量子纠缠是一种量子力学现象，当几个粒子彼此相互作用后，它们的性质会综合成为整体性质，无法单独描述。</p>
-            </div>
-            <div class="card">
-                <span class="tag">历史学</span>
-                <h3>古埃及文明</h3>
-                <p>古埃及文明发源于非洲东北部尼罗河中下游地区，以金字塔、木乃伊和象形文字闻名于世。</p>
-            </div>
-            <div class="card">
-                <span class="tag">地理学</span>
-                <h3>马里亚纳海沟</h3>
-                <p>马里亚纳海沟是地球海洋已知的最深处，位于北太平洋，最深处“挑战者深渊”深度超过10900米。</p>
-            </div>
-            <div class="card">
-                <span class="tag">计算机</span>
-                <h3>人工智能 (AI)</h3>
-                <p>人工智能是计算机科学的一个分支，旨在创造能模拟人类智能行为的机器，包括学习、推理和自我修正。</p>
-            </div>
+        <div class="card" onclick="openModal('线粒体 (Mitochondria)', '线粒体是细胞中的“动力工厂”，负责通过细胞呼吸作用产生三磷酸腺苷（ATP），为细胞活动提供能量。')">
+            <span class="tag">生物学</span>
+            <h3>线粒体 (Mitochondria)</h3>
+            <p>线粒体是细胞中的“动力工厂”，负责产生能量...</p>
+        </div>
+        <div class="card" onclick="openModal('量子纠缠 (Quantum Entanglement)', '量子纠缠是一种量子力学现象，当几个粒子彼此相互作用后，它们的性质会综合成为整体性质，无法单独描述。')">
+            <span class="tag">物理学</span>
+            <h3>量子纠缠 (Quantum Entanglement)</h3>
+            <p>量子纠缠是一种量子力学现象，性质综合为整体...</p>
+        </div>
+        <div class="card" onclick="openModal('古埃及文明', '古埃及文明发源于非洲东北部尼罗河中下游地区，以金字塔、木乃伊和象形文字闻名于世。')">
+            <span class="tag">历史学</span>
+            <h3>古埃及文明</h3>
+            <p>发源于尼罗河中下游，以金字塔闻名于世...</p>
+        </div>
+        <div class="card" onclick="openModal('马里亚纳海沟', '马里亚纳海沟是地球海洋已知的最深处，位于北太平洋，最深处“挑战者深渊”深度超过10900米。')">
+            <span class="tag">物理学</span>
+            <h3>马里亚纳海沟</h3>
+            <p>地球海洋已知的最深处，位于北太平洋...</p>
+        </div>
+        <div class="card" onclick="openModal('人工智能 (AI)', '人工智能是计算机科学的一个分支，旨在创造能模拟人类智能行为的机器，包括学习、推理和自我修正。')">
+            <span class="tag">计算机</span>
+            <h3>人工智能 (AI)</h3>
+            <p>模拟人类智能行为的机器，包括学习和推理...</p>
+        </div>
+    </div>
+    
+    <div id="no-result">没有找到相关的百科知识 😢</div>
+
+    <!-- 弹窗结构 -->
+    <div class="modal" id="myModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 class="modal-title" id="modalTitle"></h2>
+            <p class="modal-text" id="modalText"></p>
         </div>
     </div>
 
     <script>
-        // ⚠️ 前端密码验证（仅用于演示防君子，不安全）
-        const CORRECT_USER = "admin";
-        const CORRECT_PASS = "123456";
-
-        function checkLogin() {
-            var u = document.getElementById("username").value;
-            var p = document.getElementById("password").value;
+        // 1. 搜索过滤功能
+        document.getElementById("searchInput").addEventListener("input", function() {
+            let filter = this.value.toLowerCase().trim();
+            let cards = document.querySelectorAll(".card");
+            let visibleCount = 0;
             
-            if (u === CORRECT_USER && p === CORRECT_PASS) {
-                document.getElementById("login-box").style.display = "none";
-                document.getElementById("content").style.display = "block";
-            } else {
-                document.getElementById("msg").innerText = "账号或密码错误，请重试！";
-            }
+            cards.forEach(card => {
+                // 获取卡片上的所有文字（标题、标签、简介）
+                let text = card.innerText.toLowerCase();
+                if (text.includes(filter) || filter === "") {
+                    card.style.display = "block";
+                    visibleCount++;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+            
+            // 如果没有匹配结果，显示提示
+            document.getElementById("no-result").style.display = visibleCount === 0 ? "block" : "none";
+        });
+
+        // 2. 弹窗功能
+        function openModal(title, text) {
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalText").innerText = text;
+            document.getElementById("myModal").style.display = "flex";
         }
-        
-        // 支持回车键登录
-        document.getElementById("password").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") checkLogin();
+
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+        }
+
+        // 点击弹窗外部关闭
+        document.getElementById("myModal").addEventListener("click", function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // 按 Esc 键关闭
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") closeModal();
         });
     </script>
 </body>
